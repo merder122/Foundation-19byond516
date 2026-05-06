@@ -139,26 +139,6 @@
 
 	character = SSjobs.equip_rank(character, job.title, 1)					//equips the human
 
-	// AIs don't need a spawnpoint, they must spawn at an empty core
-	if(character.mind.assigned_role == "AIC")
-
-		character = character.AIize(move = FALSE) // AIize the character, but don't move them yet
-
-		// is_available for AI checks that there is an empty core available in this list
-		var/obj/structure/AIcore/deactivated/C = empty_playable_ai_cores[1]
-		empty_playable_ai_cores -= C
-
-		character.forceMove(C.loc)
-		var/mob/living/silicon/ai/A = character
-		A.on_mob_init()
-		A.client.init_verbs()
-
-		AnnounceCyborg(character, job.title, "has been downloaded to the empty core in \the [character.loc.loc]")
-		SSticker.mode.handle_latejoin(character)
-
-		qdel(C)
-		qdel(src)
-		return
 
 	SSticker.mode.handle_latejoin(character)
 	GLOB.universe.OnPlayerLatejoin(character)

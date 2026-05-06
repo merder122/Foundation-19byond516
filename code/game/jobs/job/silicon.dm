@@ -2,8 +2,9 @@
 	title = "ИИ"
 	department_flag = MSC
 
-	total_positions = 0 // Not used for AI, see is_position_available below and modules/mob/living/silicon/ai/latejoin.dm
+	total_positions = 0
 	spawn_positions = 1
+	latejoin_at_spawnpoints = TRUE
 	selection_color = "#3f823f"
 	supervisors = "ваши законы"
 	req_admin_notify = 1
@@ -40,10 +41,31 @@
 	return 1
 
 /datum/job/ai/is_position_available()
-	return (empty_playable_ai_cores.len != 0)
+	return TRUE
+
+/datum/job/ai/get_roundstart_spawnpoint()
+	for(var/obj/structure/AIcore/deactivated/core in empty_playable_ai_cores)
+		empty_playable_ai_cores -= core
+		var/turf/T = get_turf(core)
+		if(T)
+			qdel(core)
+			return T
+	return ..()
 
 /datum/job/ai/handle_variant_join(mob/living/carbon/human/H, alt_title)
-	return H
+	if(!H)
+		return null
+	var/mob/living/silicon/ai/AI = H.AIize(1)
+	if(!AI)
+		to_chat(H, SPAN_WARNING("Не удалось загрузить вас в ядро ИИ. Попробуйте позже."))
+		return null
+	if(H.mind)
+		H.mind.transfer_to(AI)
+	to_chat(AI, SPAN_NOTICE("Вы загружены в ядро ИИ."))
+	if(GAME_STATE == RUNLEVEL_GAME)
+		var/area/A = get_area(AI)
+		GLOB.global_announcer.autosay("Новый [title] загружен в ядро в [A.name].", "Arrivals Announcement Computer")
+	return AI
 
 /datum/job/cyborg
 	title = "Робот"
